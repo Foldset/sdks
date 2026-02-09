@@ -1,0 +1,32 @@
+{
+  "name": "@foldset/hono",
+  "version": "0.0.1",
+  "description": "Hono middleware for Foldset x402 payment protection",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@foldset/core": "^0.0.1"
+  },
+  "peerDependencies": {
+    "hono": ">=4"
+  },
+  "devDependencies": {
+    "hono": "^4.11.8",
+    "typescript": "^5.9.3"
+  }
+}

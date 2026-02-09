@@ -1,0 +1,7 @@
+1) We are commiting the dist folder to git cause I can't get vercel
+to use the prepare script correctly. When we go to npm, this should go
+away I think.
+
+TODO: MAKE SURE NOT TO COMMIT DIST FOLDER TO GITHUB ONCE ON NPM
+
+Also if no api key provided or error, just let it go through...

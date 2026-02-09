@@ -1,0 +1,32 @@
+{
+  "name": "@foldset/core",
+  "version": "0.0.1",
+  "description": "Core types and utilities for Foldset x402 payment protection",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.36.1",
+    "@x402/core": "^2.3.0",
+    "@x402/evm": "^2.3.0",
+    "@x402/svm": "^2.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
