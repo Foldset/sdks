@@ -1,7 +1,7 @@
 {
   "name": "@foldset/nextjs",
-  "version": "0.0.1",
-  "description": "Next.js middleware for Foldset x402 payment protection",
+  "version": "0.1.0",
+  "description": "Next.js middleware for Foldset payment protection",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,12 +15,22 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/foldset/sdks.git",
+    "directory": "typescript/nextjs"
+  },
+  "homepage": "https://docs.foldset.com",
+  "keywords": ["foldset", "nextjs", "middleware", "micropayments", "ai", "agents"],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@foldset/core": "^0.0.1"
+    "@foldset/core": "^0.1.0"
   },
   "peerDependencies": {
     "next": ">=14"

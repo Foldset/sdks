@@ -1,14 +1,30 @@
 [project]
 name = "foldset"
-version = "0.0.1"
-description = "Core types and utilities for Foldset x402 payment protection"
+version = "0.1.0"
+description = "Core types and utilities for Foldset payment protection"
 license = "MIT"
 requires-python = ">=3.11"
+authors = [{ name = "Foldset", email = "team@foldset.com" }]
+keywords = ["foldset", "micropayments", "stablecoin", "ai", "agents"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
 dependencies = [
     "x402[mechanisms]>=2.0.0",
     "upstash-redis>=1.0.0",
     "httpx>=0.28.0",
 ]
+
+[project.urls]
+Homepage = "https://foldset.com"
+Documentation = "https://docs.foldset.com"
+Repository = "https://github.com/foldset/sdks"
 
 [build-system]
 requires = ["hatchling"]

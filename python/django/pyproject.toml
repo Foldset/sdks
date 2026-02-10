@@ -1,13 +1,32 @@
 [project]
 name = "foldset-django"
-version = "0.0.1"
-description = "Django middleware for Foldset x402 payment gating"
+version = "0.1.0"
+description = "Django middleware for Foldset payment gating"
 license = "MIT"
 requires-python = ">=3.11"
+authors = [{ name = "Foldset", email = "team@foldset.com" }]
+keywords = ["foldset", "django", "middleware", "micropayments", "ai", "agents"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
 dependencies = [
-    "foldset>=0.0.1",
+    "foldset>=0.1.0",
     "django>=4.2",
 ]
+
+[project.urls]
+Homepage = "https://foldset.com"
+Documentation = "https://docs.foldset.com"
+Repository = "https://github.com/foldset/sdks"
 
 [build-system]
 requires = ["hatchling"]

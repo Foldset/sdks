@@ -1,7 +1,7 @@
 {
   "name": "@foldset/core",
-  "version": "0.0.1",
-  "description": "Core types and utilities for Foldset x402 payment protection",
+  "version": "0.1.0",
+  "description": "Core types and utilities for Foldset payment protection",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,6 +15,16 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/foldset/sdks.git",
+    "directory": "typescript/core"
+  },
+  "homepage": "https://docs.foldset.com",
+  "keywords": ["foldset", "micropayments", "stablecoin", "ai", "agents"],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
