@@ -30,7 +30,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@foldset/core": "^0.1.0"
+    "@foldset/core": "^0.1.1"
   },
   "peerDependencies": {
     "express": ">=4"
