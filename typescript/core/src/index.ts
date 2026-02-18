@@ -2,6 +2,7 @@ import type { ProcessSettleResultResponse } from "@x402/core/server";
 import type { PaymentPayload, PaymentRequirements } from "@x402/core/types";
 
 import {
+  API_BASE_URL,
   BotsManager,
   HostConfigManager,
   PaymentMethodsManager,
@@ -28,16 +29,18 @@ export class WorkerCore {
   readonly paymentMethods: PaymentMethodsManager;
   readonly bots: BotsManager;
   readonly apiKey: string;
+  readonly baseUrl: string;
   readonly httpServer: HttpServerManager;
   readonly platform: string;
   readonly sdkVersion: string;
 
-  constructor(store: ConfigStore, apiKey: string, platform: string, sdkVersion: string) {
+  constructor(store: ConfigStore, apiKey: string, baseUrl: string, platform: string, sdkVersion: string) {
     this.hostConfig = new HostConfigManager(store);
     this.restrictions = new RestrictionsManager(store);
     this.paymentMethods = new PaymentMethodsManager(store);
     this.bots = new BotsManager(store);
     this.apiKey = apiKey;
+    this.baseUrl = baseUrl;
     this.httpServer = new HttpServerManager(store);
     this.platform = platform;
     this.sdkVersion = sdkVersion;
@@ -48,9 +51,10 @@ export class WorkerCore {
       return cachedCore;
     }
 
-    const credentials = options.redisCredentials ?? (await fetchRedisCredentials(options.apiKey));
+    const baseUrl = options.baseUrl ?? API_BASE_URL;
+    const credentials = options.redisCredentials ?? (await fetchRedisCredentials(options.apiKey, baseUrl));
     const store = createRedisStore(credentials);
-    cachedCore = new WorkerCore(store, options.apiKey, options.platform ?? "unknown", options.sdkVersion ?? "unknown");
+    cachedCore = new WorkerCore(store, options.apiKey, baseUrl, options.platform ?? "unknown", options.sdkVersion ?? "unknown");
 
     return cachedCore;
   }

@@ -11,8 +11,9 @@ export interface RedisCredentials {
 
 export async function fetchRedisCredentials(
   apiKey: string,
+  baseUrl = API_BASE_URL,
 ): Promise<RedisCredentials> {
-  const response = await fetch(`${API_BASE_URL}/v1/config/redis`, {
+  const response = await fetch(`${baseUrl}/v1/config/redis`, {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
 

@@ -7,6 +7,7 @@ export interface FoldsetOptions {
   redisCredentials?: RedisCredentials;
   platform?: string;
   sdkVersion?: string;
+  baseUrl?: string;
 }
 
 export interface RequestMetadata {

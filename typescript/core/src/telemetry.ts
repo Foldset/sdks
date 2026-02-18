@@ -33,8 +33,9 @@ export function buildEventPayload(
 export async function sendEvent(
   apiKey: string,
   payload: EventPayload,
+  baseUrl = API_BASE_URL,
 ): Promise<void> {
-  await fetch(`${API_BASE_URL}/v1/events`, {
+  await fetch(`${baseUrl}/v1/events`, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, ...JSON_HEADERS },
     body: JSON.stringify(payload),
@@ -45,6 +46,7 @@ export async function reportError(
   apiKey: string,
   error: unknown,
   adapter?: RequestAdapter,
+  baseUrl = API_BASE_URL,
 ): Promise<void> {
   const payload: ErrorReport = {
     error: error instanceof Error ? error.message : String(error),
@@ -62,7 +64,7 @@ export async function reportError(
   }
 
   // Fail silently, error reporting must never break the request.
-  await fetch(`${API_BASE_URL}/v1/errors`, {
+  await fetch(`${baseUrl}/v1/errors`, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, ...JSON_HEADERS },
     body: JSON.stringify(payload),
@@ -77,5 +79,5 @@ export async function logEvent(
   paymentResponse?: string,
 ): Promise<void> {
   const payload = buildEventPayload(adapter, statusCode, requestId, paymentResponse);
-  await sendEvent(core.apiKey, payload);
+  await sendEvent(core.apiKey, payload, core.baseUrl);
 }
