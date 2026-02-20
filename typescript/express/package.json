@@ -1,6 +1,6 @@
 {
   "name": "@foldset/express",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Express middleware for Foldset payment gating",
   "license": "MIT",
   "type": "module",

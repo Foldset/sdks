@@ -1,6 +1,6 @@
 {
   "name": "@foldset/nextjs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Next.js middleware for Foldset payment protection",
   "license": "MIT",
   "type": "module",

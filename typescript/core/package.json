@@ -1,6 +1,6 @@
 {
   "name": "@foldset/core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Core types and utilities for Foldset payment protection",
   "license": "MIT",
   "type": "module",
