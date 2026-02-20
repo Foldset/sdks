@@ -154,17 +154,17 @@ async function formatMcpPaymentError(
   result: Extract<ProcessRequestResult, { type: "payment-error" }>,
   rpcId: string | number | null,
 ): Promise<void> {
-  const [paymentMethods, hostConfig] = await Promise.all([
+  const [paymentMethods, sdkConfig] = await Promise.all([
     core.paymentMethods.get(),
-    core.hostConfig.get(),
+    core.sdkConfig.get(),
   ]);
 
   const { payload, applyHeaders } = buildPaymentErrorResponse(
     result.metadata,
     result.restriction,
     paymentMethods,
-    hostConfig?.termsOfServiceUrl,
-    hostConfig?.passthroughAuthMethods ?? [],
+    sdkConfig?.termsOfServiceUrl,
+    sdkConfig?.passthroughAuthMethods ?? [],
   );
 
   result.response.body = JSON.stringify(
@@ -191,10 +191,10 @@ export async function handleMcpRequest(
 
   // List methods, pass through with payment requirements header
   if (isMcpListMethod(rpc.method)) {
-    const [restrictions, paymentMethods, hostConfig] = await Promise.all([
+    const [restrictions, paymentMethods, sdkConfig] = await Promise.all([
       core.restrictions.get(),
       core.paymentMethods.get(),
-      core.hostConfig.get(),
+      core.sdkConfig.get(),
     ]);
     // TODO rfradkin: We shouldn't really be regenerating this list each time,
     // it should be every time requirements change
@@ -206,8 +206,8 @@ export async function handleMcpRequest(
     const headers: Record<string, string> = {};
     if (requirements.length > 0) {
       const payload: Record<string, unknown> = { requirements };
-      if (hostConfig?.termsOfServiceUrl) {
-        payload.terms_of_service_url = hostConfig.termsOfServiceUrl;
+      if (sdkConfig?.termsOfServiceUrl) {
+        payload.terms_of_service_url = sdkConfig.termsOfServiceUrl;
       }
       headers["Payment-Required"] = JSON.stringify(payload);
     }
@@ -215,8 +215,8 @@ export async function handleMcpRequest(
     return { type: "no-payment-required", headers, metadata };
   }
 
-  const hostConfig = await core.hostConfig.get();
-  if (detectAuthMethod(adapter, hostConfig?.passthroughAuthMethods ?? [])) {
+  const sdkConfig = await core.sdkConfig.get();
+  if (detectAuthMethod(adapter, sdkConfig?.passthroughAuthMethods ?? [])) {
     return noPaymentRequired(metadata);
   }
 

@@ -22,9 +22,7 @@ export type HttpServerResult = { metadata: RequestMetadata } & (
   | Extract<HTTPProcessResult, { type: "payment-verified" }>
 );
 
-export type ProcessRequestResult =
-  | HttpServerResult
-  | { metadata: RequestMetadata; type: "health-check"; response: { status: 200; body: string; headers: Record<string, string> } };
+export type ProcessRequestResult = HttpServerResult;
 
 export interface RequestAdapter extends HTTPAdapter {
   getIpAddress(): string | null;
@@ -64,8 +62,7 @@ export interface ErrorReport {
 
 export type PassthroughAuthMethod = "bearer" | "api_key";
 
-export interface HostConfig {
-  host: string;
+export interface SdkConfig {
   mcpEndpoint?: string;
   termsOfServiceUrl?: string;
   passthroughAuthMethods: PassthroughAuthMethod[];

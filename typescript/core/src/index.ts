@@ -3,13 +3,12 @@ import type { PaymentPayload, PaymentRequirements } from "@x402/core/types";
 
 import {
   API_BASE_URL,
-  HostConfigManager,
+  SdkConfigManager,
   PaymentMethodsManager,
   RestrictionsManager,
   buildRequestMetadata,
 } from "./config";
 import { handleRequest, handleSettlement } from "./handler";
-import { HEALTH_PATH, buildHealthResponse } from "./health";
 import { handleMcpRequest } from "./mcp";
 import { HttpServerManager } from "./server";
 import { createRedisStore, fetchRedisCredentials } from "./store";
@@ -23,7 +22,7 @@ import type {
 let cachedCore: WorkerCore | null = null;
 
 export class WorkerCore {
-  readonly hostConfig: HostConfigManager;
+  readonly sdkConfig: SdkConfigManager;
   readonly restrictions: RestrictionsManager;
   readonly paymentMethods: PaymentMethodsManager;
   readonly apiKey: string;
@@ -33,7 +32,7 @@ export class WorkerCore {
   readonly sdkVersion: string;
 
   constructor(store: ConfigStore, apiKey: string, baseUrl: string, platform: string, sdkVersion: string) {
-    this.hostConfig = new HostConfigManager(store);
+    this.sdkConfig = new SdkConfigManager(store);
     this.restrictions = new RestrictionsManager(store);
     this.paymentMethods = new PaymentMethodsManager(store);
     this.apiKey = apiKey;
@@ -59,20 +58,8 @@ export class WorkerCore {
   async processRequest(adapter: RequestAdapter): Promise<ProcessRequestResult> {
     const metadata = buildRequestMetadata();
 
-    if (adapter.getPath() === HEALTH_PATH) {
-      return {
-        type: "health-check",
-        metadata,
-        response: {
-          status: 200,
-          body: buildHealthResponse(this.platform, this.sdkVersion),
-          headers: { "Content-Type": "application/json" },
-        },
-      };
-    }
-
-    const hostConfig = await this.hostConfig.get();
-    const mcpEndpoint = hostConfig?.mcpEndpoint;
+    const sdkConfig = await this.sdkConfig.get();
+    const mcpEndpoint = sdkConfig?.mcpEndpoint;
 
     if (mcpEndpoint && adapter.getPath() === mcpEndpoint) {
       return handleMcpRequest(this, adapter, mcpEndpoint, metadata);
@@ -107,7 +94,7 @@ export type {
   EventPayload,
   FacilitatorConfig,
   FoldsetOptions,
-  HostConfig,
+  SdkConfig,
   HttpServerResult,
   McpRestriction,
   PassthroughAuthMethod,
@@ -130,7 +117,7 @@ export { buildRoutesConfig, priceToAmount } from "./routes";
 export {
   CachedConfigManager,
   FacilitatorManager,
-  HostConfigManager,
+  SdkConfigManager,
   PaymentMethodsManager,
   RestrictionsManager,
 } from "./config";
@@ -161,5 +148,3 @@ export { formatApiPaymentError } from "./api";
 // Constants
 export const FOLDSET_VERIFIED_HEADER = "x-foldset-verified";
 
-// Health
-export { HEALTH_PATH, buildHealthResponse } from "./health";

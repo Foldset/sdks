@@ -33,10 +33,6 @@ export function foldset(options: FoldsetOptions): RequestHandler {
       const result = await core.processRequest(adapter);
 
       switch (result.type) {
-        case "health-check":
-          setHeaders(res, result.response.headers);
-          return res.status(result.response.status).send(result.response.body);
-
         case "no-payment-required":
           if (result.headers) {
             setHeaders(res, result.headers);

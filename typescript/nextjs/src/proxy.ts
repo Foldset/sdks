@@ -28,12 +28,6 @@ export function createFoldsetProxy(options: FoldsetOptions): (request: NextReque
       const result = await core.processRequest(adapter);
 
       switch (result.type) {
-        case "health-check":
-          return new NextResponse(result.response.body, {
-            status: result.response.status,
-            headers: result.response.headers,
-          });
-
         case "no-payment-required": {
           const requestHeaders = new Headers(request.headers);
           requestHeaders.delete(FOLDSET_VERIFIED_HEADER);

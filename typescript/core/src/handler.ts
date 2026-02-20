@@ -77,8 +77,8 @@ export async function handleRequest(
   adapter: RequestAdapter,
   metadata: RequestMetadata,
 ): Promise<ProcessRequestResult> {
-  const hostConfig = await core.hostConfig.get();
-  const passthroughMethods = hostConfig?.passthroughAuthMethods ?? [];
+  const sdkConfig = await core.sdkConfig.get();
+  const passthroughMethods = sdkConfig?.passthroughAuthMethods ?? [];
 
   if (detectAuthMethod(adapter, passthroughMethods)) {
     return noPaymentRequired(metadata);
@@ -93,7 +93,7 @@ export async function handleRequest(
   const paymentMethods = await core.paymentMethods.get();
 
   if (paymentMethods.length > 0 && result.restriction.type === "api") {
-    formatApiPaymentError(result, result.restriction, paymentMethods, hostConfig?.termsOfServiceUrl, passthroughMethods);
+    formatApiPaymentError(result, result.restriction, paymentMethods, sdkConfig?.termsOfServiceUrl, passthroughMethods);
   }
 
   return result;

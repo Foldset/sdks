@@ -6,7 +6,7 @@ const PACKAGE_VERSION = packageJson.version;
 import type {
   ConfigStore,
   FacilitatorConfig,
-  HostConfig,
+  SdkConfig,
   PaymentMethod,
   ProcessRequestResult,
   RequestMetadata,
@@ -56,11 +56,15 @@ export class CachedConfigManager<T> {
     this.cacheTimestamp = Date.now();
     return this.cached;
   }
+
+  invalidate(): void {
+    this.cacheTimestamp = 0;
+  }
 }
 
-export class HostConfigManager extends CachedConfigManager<HostConfig | null> {
+export class SdkConfigManager extends CachedConfigManager<SdkConfig | null> {
   constructor(store: ConfigStore) {
-    super(store, "host-config", null);
+    super(store, "sdk-config", null);
   }
 }
 

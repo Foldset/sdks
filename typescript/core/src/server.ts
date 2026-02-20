@@ -10,7 +10,7 @@ import { registerExactSvmScheme } from "@x402/svm/exact/server";
 import {
   CACHE_TTL_MS,
   FacilitatorManager,
-  HostConfigManager,
+  SdkConfigManager,
   PaymentMethodsManager,
   RestrictionsManager,
 } from "./config";
@@ -71,13 +71,13 @@ const processHTTPRequestWithRestriction: FoldsetX402HTTPServer["processHTTPReque
 export class HttpServerManager {
   private cached: FoldsetX402HTTPServer | null = null;
   private cacheTimestamp = 0;
-  private hostConfig: HostConfigManager;
+  private sdkConfig: SdkConfigManager;
   private restrictions: RestrictionsManager;
   private paymentMethods: PaymentMethodsManager;
   private facilitator: FacilitatorManager;
 
   constructor(store: ConfigStore) {
-    this.hostConfig = new HostConfigManager(store);
+    this.sdkConfig = new SdkConfigManager(store);
     this.restrictions = new RestrictionsManager(store);
     this.paymentMethods = new PaymentMethodsManager(store);
     this.facilitator = new FacilitatorManager(store);
@@ -88,14 +88,14 @@ export class HttpServerManager {
       return this.cached;
     }
 
-    const [hostConfig, restrictions, paymentMethods, facilitator] = await Promise.all([
-      this.hostConfig.get(),
+    const [sdkConfig, restrictions, paymentMethods, facilitator] = await Promise.all([
+      this.sdkConfig.get(),
       this.restrictions.get(),
       this.paymentMethods.get(),
       this.facilitator.get(),
     ]);
 
-    if (!hostConfig || !facilitator) {
+    if (!sdkConfig || !facilitator) {
       return null;
     }
 
@@ -103,9 +103,9 @@ export class HttpServerManager {
     registerExactEvmScheme(server);
     registerExactSvmScheme(server);
 
-    const contentRoutes = buildRoutesConfig(restrictions, paymentMethods, hostConfig.termsOfServiceUrl);
-    const mcpRoutes = hostConfig.mcpEndpoint
-      ? buildMcpRoutesConfig(restrictions, paymentMethods, hostConfig.mcpEndpoint, hostConfig.termsOfServiceUrl)
+    const contentRoutes = buildRoutesConfig(restrictions, paymentMethods, sdkConfig.termsOfServiceUrl);
+    const mcpRoutes = sdkConfig.mcpEndpoint
+      ? buildMcpRoutesConfig(restrictions, paymentMethods, sdkConfig.mcpEndpoint, sdkConfig.termsOfServiceUrl)
       : {};
     const routesConfig = { ...contentRoutes, ...mcpRoutes };
 
