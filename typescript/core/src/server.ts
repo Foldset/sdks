@@ -29,8 +29,9 @@ function foldsetParseRoutePattern(pattern: string): { verb: string; regex: RegEx
 }
 
 /**
- * Always return payment-required headers regardless of browser detection.
- * Body is left empty, web.ts and mcp.ts set their own response body.
+ * Always return the machine-readable payment-required response,
+ * bypassing x402's browser detection in createHTTPResponse.
+ * Body is left empty and overwritten by downstream
  */
 function foldsetCreatePaymentRequiredResponse(
   this: x402HTTPResourceServer,

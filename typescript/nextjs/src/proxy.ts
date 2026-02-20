@@ -1,5 +1,5 @@
 import type { FoldsetOptions } from "@foldset/core";
-import { WorkerCore, reportError } from "@foldset/core";
+import { WorkerCore, FOLDSET_VERIFIED_HEADER, reportError } from "@foldset/core";
 import { NextResponse, type NextRequest } from "next/server";
 
 import packageJson from "../package.json" with { type: "json" };
@@ -35,7 +35,9 @@ export function createFoldsetProxy(options: FoldsetOptions): (request: NextReque
           });
 
         case "no-payment-required": {
-          const response = NextResponse.next();
+          const requestHeaders = new Headers(request.headers);
+          requestHeaders.delete(FOLDSET_VERIFIED_HEADER);
+          const response = NextResponse.next({ request: { headers: requestHeaders } });
           if (result.headers) {
             setHeaders(response, result.headers);
           }
@@ -66,7 +68,10 @@ export function createFoldsetProxy(options: FoldsetOptions): (request: NextReque
             );
           }
 
-          const response = NextResponse.next();
+          const requestHeaders = new Headers(request.headers);
+          requestHeaders.delete(FOLDSET_VERIFIED_HEADER);
+          requestHeaders.set(FOLDSET_VERIFIED_HEADER, "true");
+          const response = NextResponse.next({ request: { headers: requestHeaders } });
           setHeaders(response, settlement.headers);
           return response;
         }
@@ -74,7 +79,9 @@ export function createFoldsetProxy(options: FoldsetOptions): (request: NextReque
     } catch (error) {
       // On any error, allow the request through rather than blocking the user.
       reportError(opts.apiKey, error, new NextjsAdapter(request));
-      return NextResponse.next();
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.delete(FOLDSET_VERIFIED_HEADER);
+      return NextResponse.next({ request: { headers: requestHeaders } });
     }
   };
 }

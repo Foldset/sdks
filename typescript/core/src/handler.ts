@@ -5,8 +5,7 @@ import { formatApiPaymentError } from "./api";
 import { noPaymentRequired } from "./config";
 import type { WorkerCore } from "./index";
 import { logEvent } from "./telemetry";
-import type { ProcessRequestResult, RequestAdapter, RequestMetadata } from "./types";
-import { formatWebPaymentError } from "./web";
+import type { PassthroughAuthMethod, ProcessRequestResult, RequestAdapter, RequestMetadata } from "./types";
 
 function settlementFailure(
   reason: string,
@@ -55,17 +54,33 @@ export async function handlePaymentRequest(
   return result;
 }
 
+export function detectAuthMethod(
+  adapter: RequestAdapter,
+  enabledMethods: PassthroughAuthMethod[],
+): PassthroughAuthMethod | null {
+  if (enabledMethods.includes("bearer")) {
+    const authHeader = adapter.getHeader("authorization");
+    if (authHeader?.toLowerCase().startsWith("bearer ")) {
+      return "bearer";
+    }
+  }
+  if (enabledMethods.includes("api_key")) {
+    if (adapter.getHeader("x-api-key")) {
+      return "api_key";
+    }
+  }
+  return null;
+}
+
 export async function handleRequest(
   core: WorkerCore,
   adapter: RequestAdapter,
   metadata: RequestMetadata,
 ): Promise<ProcessRequestResult> {
-  const userAgent = adapter.getUserAgent();
-  const bot = userAgent ? await core.bots.matchBot(userAgent) : null;
   const hostConfig = await core.hostConfig.get();
+  const passthroughMethods = hostConfig?.passthroughAuthMethods ?? [];
 
-  const shouldCheck = bot || hostConfig?.apiProtectionMode === "all";
-  if (!shouldCheck) {
+  if (detectAuthMethod(adapter, passthroughMethods)) {
     return noPaymentRequired(metadata);
   }
 
@@ -75,25 +90,10 @@ export async function handleRequest(
     return result;
   }
 
-  // TODO: Figure out a way to classify whether web or api sooner in the flow
-  // so we don't run handlePaymentRequest for web restrictions on non-bot requests
-  // Web restrictions are always bot-only
-  if (result.restriction.type === "web" && !bot) {
-    return noPaymentRequired(metadata);
-  }
-
   const paymentMethods = await core.paymentMethods.get();
 
-  if (paymentMethods.length > 0) {
-    if (result.restriction.type === "api") {
-      formatApiPaymentError(result, result.restriction, paymentMethods, hostConfig?.termsOfServiceUrl);
-    } else if (result.restriction.type === "web") {
-      formatWebPaymentError(result, result.restriction, paymentMethods, adapter, hostConfig?.termsOfServiceUrl);
-    }
-  }
-
-  if (bot?.force_200) {
-    result.response.status = 200;
+  if (paymentMethods.length > 0 && result.restriction.type === "api") {
+    formatApiPaymentError(result, result.restriction, paymentMethods, hostConfig?.termsOfServiceUrl, passthroughMethods);
   }
 
   return result;

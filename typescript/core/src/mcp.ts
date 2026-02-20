@@ -1,7 +1,8 @@
 import type { RoutesConfig } from "@x402/core/http";
 
+import { buildPaymentErrorResponse } from "./api";
 import { noPaymentRequired } from "./config";
-import { handlePaymentRequest } from "./handler";
+import { detectAuthMethod, handlePaymentRequest } from "./handler";
 import type { WorkerCore } from "./index";
 import { buildRouteEntry, priceToAmount } from "./routes";
 import { logEvent } from "./telemetry";
@@ -158,23 +159,18 @@ async function formatMcpPaymentError(
     core.hostConfig.get(),
   ]);
 
-  result.response.body = JSON.stringify(
-    buildJsonRpcError(rpcId, 402, "Payment required", {
-      ...result.metadata,
-      description: result.restriction.description,
-      price: result.restriction.price,
-      ...(hostConfig?.termsOfServiceUrl && { terms_of_service_url: hostConfig.termsOfServiceUrl }),
-      payment_methods: paymentMethods.map((pm) => ({
-        network: pm.caip2_id,
-        asset: pm.contract_address,
-        decimals: pm.decimals,
-        pay_to: pm.circle_wallet_address,
-        chain: pm.chain_display_name,
-        asset_name: pm.asset_display_name,
-      })),
-    }),
+  const { payload, applyHeaders } = buildPaymentErrorResponse(
+    result.metadata,
+    result.restriction,
+    paymentMethods,
+    hostConfig?.termsOfServiceUrl,
+    hostConfig?.passthroughAuthMethods ?? [],
   );
-  result.response.headers["Content-Type"] = "application/json";
+
+  result.response.body = JSON.stringify(
+    buildJsonRpcError(rpcId, 402, "Payment required", payload),
+  );
+  applyHeaders(result.response.headers);
 }
 
 export async function handleMcpRequest(
@@ -217,6 +213,11 @@ export async function handleMcpRequest(
     }
     await logEvent(core, adapter, 200, metadata.request_id);
     return { type: "no-payment-required", headers, metadata };
+  }
+
+  const hostConfig = await core.hostConfig.get();
+  if (detectAuthMethod(adapter, hostConfig?.passthroughAuthMethods ?? [])) {
+    return noPaymentRequired(metadata);
   }
 
   const routeKey = getMcpRouteKey(mcpEndpoint, rpc.method, rpc.params);

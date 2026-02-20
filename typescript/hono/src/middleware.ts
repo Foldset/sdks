@@ -2,7 +2,7 @@ import type { Context, MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { StatusCode } from "hono/utils/http-status";
 import type { FoldsetOptions } from "@foldset/core";
-import { WorkerCore, reportError } from "@foldset/core";
+import { WorkerCore, FOLDSET_VERIFIED_HEADER, reportError } from "@foldset/core";
 
 import packageJson from "../package.json" with { type: "json" };
 import { HonoAdapter } from "./adapter";
@@ -25,6 +25,8 @@ export function foldset(options: FoldsetOptions): MiddlewareHandler {
 
   return createMiddleware(async (c, next) => {
     try {
+      c.req.raw.headers.delete(FOLDSET_VERIFIED_HEADER);
+
       const core = await WorkerCore.fromOptions(opts);
       const adapter = new HonoAdapter(c);
 
@@ -47,6 +49,7 @@ export function foldset(options: FoldsetOptions): MiddlewareHandler {
         }
 
         case "payment-verified": {
+          c.req.raw.headers.set(FOLDSET_VERIFIED_HEADER, "true");
           await next();
 
           const settlement = await core.processSettlement(

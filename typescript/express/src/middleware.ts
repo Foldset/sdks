@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import type { FoldsetOptions } from "@foldset/core";
-import { WorkerCore, reportError } from "@foldset/core";
+import { WorkerCore, FOLDSET_VERIFIED_HEADER, reportError } from "@foldset/core";
 
 import packageJson from "../package.json" with { type: "json" };
 import { ExpressAdapter } from "./adapter";
@@ -25,6 +25,8 @@ export function foldset(options: FoldsetOptions): RequestHandler {
     next: NextFunction,
   ) {
     try {
+      delete req.headers[FOLDSET_VERIFIED_HEADER];
+
       const core = await WorkerCore.fromOptions(opts);
       const adapter = new ExpressAdapter(req);
 
@@ -46,6 +48,7 @@ export function foldset(options: FoldsetOptions): RequestHandler {
           return res.status(result.response.status).send(result.response.body);
 
         case "payment-verified": {
+          req.headers[FOLDSET_VERIFIED_HEADER] = "true";
           const originalEnd = res.end.bind(res);
 
           res.end = function (

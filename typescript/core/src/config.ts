@@ -4,7 +4,6 @@ import packageJson from "../package.json" with { type: "json" };
 
 const PACKAGE_VERSION = packageJson.version;
 import type {
-  Bot,
   ConfigStore,
   FacilitatorConfig,
   HostConfig,
@@ -74,23 +73,6 @@ export class RestrictionsManager extends CachedConfigManager<Restriction[]> {
 export class PaymentMethodsManager extends CachedConfigManager<PaymentMethod[]> {
   constructor(store: ConfigStore) {
     super(store, "payment-methods", []);
-  }
-}
-
-export class BotsManager extends CachedConfigManager<Bot[]> {
-  constructor(store: ConfigStore) {
-    super(store, "bots", []);
-  }
-
-  protected override deserialize(raw: string): Bot[] {
-    const parsed: Bot[] = JSON.parse(raw);
-    return parsed.map((b) => ({ ...b, user_agent: b.user_agent.toLowerCase() }));
-  }
-
-  async matchBot(userAgent: string): Promise<Bot | null> {
-    const bots = await this.get();
-    const ua = userAgent.toLowerCase();
-    return bots.find((bot) => ua.includes(bot.user_agent)) ?? null;
   }
 }
 

@@ -62,22 +62,19 @@ export interface ErrorReport {
   };
 }
 
+export type PassthroughAuthMethod = "bearer" | "api_key";
+
 export interface HostConfig {
   host: string;
   mcpEndpoint?: string;
   termsOfServiceUrl?: string;
-  apiProtectionMode: "bots" | "all";
+  passthroughAuthMethods: PassthroughAuthMethod[];
 }
 
 export interface RestrictionBase {
   description: string;
   price: number;
   scheme: string;
-}
-
-export interface WebRestriction extends RestrictionBase {
-  type: "web";
-  path: string;
 }
 
 export interface ApiRestriction extends RestrictionBase {
@@ -92,7 +89,7 @@ export interface McpRestriction extends RestrictionBase {
   name: string;
 }
 
-export type Restriction = WebRestriction | ApiRestriction | McpRestriction;
+export type Restriction = ApiRestriction | McpRestriction;
 
 export interface PaymentMethod {
   caip2_id: string;
@@ -102,11 +99,6 @@ export interface PaymentMethod {
   chain_display_name: string;
   asset_display_name: string;
   extra?: Record<string, string>;
-}
-
-export interface Bot {
-  user_agent: string;
-  force_200?: boolean;
 }
 
 export interface FacilitatorConfig {

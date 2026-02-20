@@ -3,7 +3,6 @@ import type { PaymentPayload, PaymentRequirements } from "@x402/core/types";
 
 import {
   API_BASE_URL,
-  BotsManager,
   HostConfigManager,
   PaymentMethodsManager,
   RestrictionsManager,
@@ -27,7 +26,6 @@ export class WorkerCore {
   readonly hostConfig: HostConfigManager;
   readonly restrictions: RestrictionsManager;
   readonly paymentMethods: PaymentMethodsManager;
-  readonly bots: BotsManager;
   readonly apiKey: string;
   readonly baseUrl: string;
   readonly httpServer: HttpServerManager;
@@ -38,7 +36,6 @@ export class WorkerCore {
     this.hostConfig = new HostConfigManager(store);
     this.restrictions = new RestrictionsManager(store);
     this.paymentMethods = new PaymentMethodsManager(store);
-    this.bots = new BotsManager(store);
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
     this.httpServer = new HttpServerManager(store);
@@ -105,7 +102,6 @@ export class WorkerCore {
 // Types
 export type {
   ApiRestriction,
-  Bot,
   ConfigStore,
   ErrorReport,
   EventPayload,
@@ -114,28 +110,24 @@ export type {
   HostConfig,
   HttpServerResult,
   McpRestriction,
+  PassthroughAuthMethod,
   PaymentMethod,
   ProcessRequestResult,
   RequestAdapter,
   RequestMetadata,
   Restriction,
   RestrictionBase,
-  WebRestriction,
 } from "./types";
 
 // Store
 export { createRedisStore, fetchRedisCredentials } from "./store";
 export type { RedisCredentials } from "./store";
 
-// Paywall
-export { generatePaywallHtml } from "./paywall";
-
 // Routes
 export { buildRoutesConfig, priceToAmount } from "./routes";
 
 // Config managers
 export {
-  BotsManager,
   CachedConfigManager,
   FacilitatorManager,
   HostConfigManager,
@@ -163,9 +155,11 @@ export type { JsonRpcError, JsonRpcRequest, McpPaymentRequirement } from "./mcp"
 export { buildEventPayload, logEvent, reportError, sendEvent } from "./telemetry";
 
 // Handlers
-export { handlePaymentRequest, handleRequest, handleSettlement } from "./handler";
+export { detectAuthMethod, handlePaymentRequest, handleRequest, handleSettlement } from "./handler";
 export { formatApiPaymentError } from "./api";
-export { formatWebPaymentError } from "./web";
+
+// Constants
+export const FOLDSET_VERIFIED_HEADER = "x-foldset-verified";
 
 // Health
 export { HEALTH_PATH, buildHealthResponse } from "./health";
