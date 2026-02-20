@@ -12,7 +12,7 @@ import {
   FacilitatorManager,
   SdkConfigManager,
   PaymentMethodsManager,
-  RestrictionsManager,
+  RulesManager,
 } from "./config";
 import { buildMcpRoutesConfig } from "./mcp";
 import { buildRoutesConfig } from "./routes";
@@ -20,7 +20,7 @@ import type { ConfigStore, HttpServerResult } from "./types";
 
 /**
  * Custom parseRoutePattern that treats the path as a raw regex.
- * Restriction paths (stored as regex in the DB) are used directly
+ * Rule paths (stored as regex in the DB) are used directly
  * instead of being converted by x402's glob-like pattern parser.
  */
 function foldsetParseRoutePattern(pattern: string): { verb: string; regex: RegExp } {
@@ -52,9 +52,9 @@ export interface FoldsetX402HTTPServer extends x402HTTPResourceServer {
 }
 
 /**
- * Attaches the matched restriction to payment-error results from the route config.
+ * Attaches the matched rule to payment-error results from the route config.
  */
-const processHTTPRequestWithRestriction: FoldsetX402HTTPServer["processHTTPRequest"] = async function (
+const processHTTPRequestWithRule: FoldsetX402HTTPServer["processHTTPRequest"] = async function (
   this: x402HTTPResourceServer,
   context,
   paywallConfig,
@@ -63,7 +63,7 @@ const processHTTPRequestWithRestriction: FoldsetX402HTTPServer["processHTTPReque
   if (result.type === "payment-error") {
     // @ts-expect-error - accessing private method
     const routeConfig = this.getRouteConfig(context.path, context.method);
-    return { ...result, restriction: routeConfig?.restriction } as HttpServerResult;
+    return { ...result, rule: routeConfig?.rule } as HttpServerResult;
   }
   return result as HttpServerResult;
 };
@@ -72,13 +72,13 @@ export class HttpServerManager {
   private cached: FoldsetX402HTTPServer | null = null;
   private cacheTimestamp = 0;
   private sdkConfig: SdkConfigManager;
-  private restrictions: RestrictionsManager;
+  private rules: RulesManager;
   private paymentMethods: PaymentMethodsManager;
   private facilitator: FacilitatorManager;
 
   constructor(store: ConfigStore) {
     this.sdkConfig = new SdkConfigManager(store);
-    this.restrictions = new RestrictionsManager(store);
+    this.rules = new RulesManager(store);
     this.paymentMethods = new PaymentMethodsManager(store);
     this.facilitator = new FacilitatorManager(store);
   }
@@ -88,9 +88,9 @@ export class HttpServerManager {
       return this.cached;
     }
 
-    const [sdkConfig, restrictions, paymentMethods, facilitator] = await Promise.all([
+    const [sdkConfig, rules, paymentMethods, facilitator] = await Promise.all([
       this.sdkConfig.get(),
-      this.restrictions.get(),
+      this.rules.get(),
       this.paymentMethods.get(),
       this.facilitator.get(),
     ]);
@@ -103,9 +103,9 @@ export class HttpServerManager {
     registerExactEvmScheme(server);
     registerExactSvmScheme(server);
 
-    const contentRoutes = buildRoutesConfig(restrictions, paymentMethods, sdkConfig.termsOfServiceUrl);
+    const contentRoutes = buildRoutesConfig(rules, paymentMethods, sdkConfig.termsOfServiceUrl);
     const mcpRoutes = sdkConfig.mcpEndpoint
-      ? buildMcpRoutesConfig(restrictions, paymentMethods, sdkConfig.mcpEndpoint, sdkConfig.termsOfServiceUrl)
+      ? buildMcpRoutesConfig(rules, paymentMethods, sdkConfig.mcpEndpoint, sdkConfig.termsOfServiceUrl)
       : {};
     const routesConfig = { ...contentRoutes, ...mcpRoutes };
 
@@ -117,7 +117,7 @@ export class HttpServerManager {
     // @ts-expect-error - overriding private method
     httpServer.createHTTPResponse = foldsetCreatePaymentRequiredResponse;
 
-    httpServer.processHTTPRequest = processHTTPRequestWithRestriction;
+    httpServer.processHTTPRequest = processHTTPRequestWithRule;
 
     await httpServer.initialize();
 

@@ -1,8 +1,8 @@
-import type { PassthroughAuthMethod, PaymentMethod, ProcessRequestResult, RequestMetadata, Restriction } from "./types";
+import type { PassthroughAuthMethod, PaymentMethod, ProcessRequestResult, RequestMetadata, Rule } from "./types";
 
 export function buildPaymentErrorResponse(
   metadata: RequestMetadata,
-  restriction: Restriction,
+  rule: Rule,
   paymentMethods: PaymentMethod[],
   termsOfServiceUrl?: string,
   passthroughAuthMethods?: PassthroughAuthMethod[],
@@ -10,8 +10,8 @@ export function buildPaymentErrorResponse(
   const payload: Record<string, unknown> = {
     error: "payment_required",
     ...metadata,
-    description: restriction.description,
-    price: restriction.price,
+    description: rule.description,
+    price: rule.price,
     ...(termsOfServiceUrl && { terms_of_service_url: termsOfServiceUrl }),
     payment_methods: paymentMethods.map((pm) => ({
       network: pm.caip2_id,
@@ -41,14 +41,14 @@ export function buildPaymentErrorResponse(
 
 export function formatApiPaymentError(
   result: Extract<ProcessRequestResult, { type: "payment-error" }>,
-  restriction: Extract<Restriction, { type: "api" }>,
+  rule: Extract<Rule, { type: "api" }>,
   paymentMethods: PaymentMethod[],
   termsOfServiceUrl?: string,
   passthroughAuthMethods?: PassthroughAuthMethod[],
 ): void {
   const { payload, applyHeaders } = buildPaymentErrorResponse(
     result.metadata,
-    restriction,
+    rule,
     paymentMethods,
     termsOfServiceUrl,
     passthroughAuthMethods,

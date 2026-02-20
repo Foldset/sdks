@@ -7,12 +7,12 @@ import type { WorkerCore } from "./index";
 import { buildRouteEntry, priceToAmount } from "./routes";
 import { logEvent } from "./telemetry";
 import type {
-  McpRestriction,
+  McpRule,
   PaymentMethod,
   ProcessRequestResult,
   RequestAdapter,
   RequestMetadata,
-  Restriction,
+  Rule,
 } from "./types";
 
 export interface JsonRpcRequest {
@@ -41,24 +41,24 @@ export function parseMcpRequest(body: unknown): JsonRpcRequest | null {
 }
 
 /**
- * Build the route key for an MCP restriction: "endpointPath/method:name".
+ * Build the route key for an MCP rule: "endpointPath/method:name".
  */
 export function buildMcpRouteKey(
   endpointPath: string,
-  restriction: McpRestriction,
+  rule: McpRule,
 ): string {
-  return `${endpointPath}/${restriction.method}:${restriction.name}`;
+  return `${endpointPath}/${rule.method}:${rule.name}`;
 }
 
 export function buildMcpRoutesConfig(
-  restrictions: Restriction[],
+  rules: Rule[],
   paymentMethods: PaymentMethod[],
   mcpEndpoint: string,
   termsOfServiceUrl?: string,
 ): RoutesConfig {
   const routesConfig: RoutesConfig = {};
 
-  for (const r of restrictions) {
+  for (const r of rules) {
     if (r.type !== "mcp") continue;
     const key = buildMcpRouteKey(mcpEndpoint, r);
     routesConfig[key] = buildRouteEntry(r, paymentMethods, termsOfServiceUrl);
@@ -117,18 +117,18 @@ export function buildJsonRpcError(
 /**
  * Build payment requirements for all gated MCP tools/resources/prompts
  * matching the given list method. Returns clear payment instructions
- * built directly from Foldset restrictions and payment methods.
+ * built directly from Foldset rules and payment methods.
  */
 export function getMcpListPaymentRequirements(
   listMethod: string,
-  restrictions: Restriction[],
+  rules: Rule[],
   paymentMethods: PaymentMethod[],
 ): McpPaymentRequirement[] {
   const callMethod = MCP_LIST_CALL_METHODS[listMethod];
   if (!callMethod) return [];
 
-  const relevant = restrictions.filter(
-    (r): r is McpRestriction => r.type === "mcp" && r.method === callMethod && r.price > 0,
+  const relevant = rules.filter(
+    (r): r is McpRule => r.type === "mcp" && r.method === callMethod && r.price > 0,
   );
   if (!relevant.length) return [];
 
@@ -161,7 +161,7 @@ async function formatMcpPaymentError(
 
   const { payload, applyHeaders } = buildPaymentErrorResponse(
     result.metadata,
-    result.restriction,
+    result.rule,
     paymentMethods,
     sdkConfig?.termsOfServiceUrl,
     sdkConfig?.passthroughAuthMethods ?? [],
@@ -191,8 +191,8 @@ export async function handleMcpRequest(
 
   // List methods, pass through with payment requirements header
   if (isMcpListMethod(rpc.method)) {
-    const [restrictions, paymentMethods, sdkConfig] = await Promise.all([
-      core.restrictions.get(),
+    const [rules, paymentMethods, sdkConfig] = await Promise.all([
+      core.rules.get(),
       core.paymentMethods.get(),
       core.sdkConfig.get(),
     ]);
@@ -200,7 +200,7 @@ export async function handleMcpRequest(
     // it should be every time requirements change
     const requirements = getMcpListPaymentRequirements(
       rpc.method,
-      restrictions,
+      rules,
       paymentMethods,
     );
     const headers: Record<string, string> = {};

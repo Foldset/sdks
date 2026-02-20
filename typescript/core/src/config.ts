@@ -10,7 +10,7 @@ import type {
   PaymentMethod,
   ProcessRequestResult,
   RequestMetadata,
-  Restriction,
+  Rule,
 } from "./types";
 
 export const CACHE_TTL_MS = 30_000;
@@ -68,9 +68,9 @@ export class SdkConfigManager extends CachedConfigManager<SdkConfig | null> {
   }
 }
 
-export class RestrictionsManager extends CachedConfigManager<Restriction[]> {
+export class RulesManager extends CachedConfigManager<Rule[]> {
   constructor(store: ConfigStore) {
-    super(store, "restrictions", []);
+    super(store, "rules", []);
   }
 }
 

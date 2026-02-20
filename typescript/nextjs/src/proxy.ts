@@ -1,6 +1,6 @@
 import type { FoldsetOptions } from "@foldset/core";
 import { WorkerCore, FOLDSET_VERIFIED_HEADER, reportError } from "@foldset/core";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import packageJson from "../package.json" with { type: "json" };
 import { NextjsAdapter } from "./adapter";
@@ -11,17 +11,27 @@ function setHeaders(response: NextResponse, headers: Record<string, string>): vo
   }
 }
 
-export function createFoldsetProxy(options: FoldsetOptions): (request: NextRequest) => Promise<NextResponse> {
+export function withFoldset(
+  options: FoldsetOptions,
+  middleware?: (request: NextRequest) => Promise<NextResponse> | NextResponse,
+): (request: NextRequest) => Promise<NextResponse> {
   if (!options.apiKey) {
-    console.warn("[foldset] No API key provided, proxy disabled");
-    return async function proxy(_request: NextRequest): Promise<NextResponse> {
-      return NextResponse.next();
-    };
+    console.warn("[foldset] No API key provided, payment gating disabled");
+    if (middleware) return (request) => Promise.resolve(middleware(request));
+    return async () => NextResponse.next();
   }
 
   const opts: FoldsetOptions = { ...options, platform: "nextjs", sdkVersion: packageJson.version };
 
-  return async function proxy(request: NextRequest): Promise<NextResponse> {
+  async function callMiddleware(request: NextRequest, requestHeaders: Headers): Promise<NextResponse> {
+    if (middleware) return middleware(new NextRequest(request, { headers: requestHeaders }));
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  return async function foldsetMiddleware(request: NextRequest): Promise<NextResponse> {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.delete(FOLDSET_VERIFIED_HEADER);
+
     try {
       const core = await WorkerCore.fromOptions(opts);
       const adapter = new NextjsAdapter(request);
@@ -29,12 +39,8 @@ export function createFoldsetProxy(options: FoldsetOptions): (request: NextReque
 
       switch (result.type) {
         case "no-payment-required": {
-          const requestHeaders = new Headers(request.headers);
-          requestHeaders.delete(FOLDSET_VERIFIED_HEADER);
-          const response = NextResponse.next({ request: { headers: requestHeaders } });
-          if (result.headers) {
-            setHeaders(response, result.headers);
-          }
+          const response = await callMiddleware(request, requestHeaders);
+          if (result.headers) setHeaders(response, result.headers);
           return response;
         }
 
@@ -62,20 +68,15 @@ export function createFoldsetProxy(options: FoldsetOptions): (request: NextReque
             );
           }
 
-          const requestHeaders = new Headers(request.headers);
-          requestHeaders.delete(FOLDSET_VERIFIED_HEADER);
           requestHeaders.set(FOLDSET_VERIFIED_HEADER, "true");
-          const response = NextResponse.next({ request: { headers: requestHeaders } });
+          const response = await callMiddleware(request, requestHeaders);
           setHeaders(response, settlement.headers);
           return response;
         }
       }
     } catch (error) {
-      // On any error, allow the request through rather than blocking the user.
       reportError(opts.apiKey, error, new NextjsAdapter(request));
-      const requestHeaders = new Headers(request.headers);
-      requestHeaders.delete(FOLDSET_VERIFIED_HEADER);
-      return NextResponse.next({ request: { headers: requestHeaders } });
+      return callMiddleware(request, requestHeaders);
     }
   };
 }

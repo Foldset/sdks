@@ -5,7 +5,7 @@ import {
   API_BASE_URL,
   SdkConfigManager,
   PaymentMethodsManager,
-  RestrictionsManager,
+  RulesManager,
   buildRequestMetadata,
 } from "./config";
 import { handleRequest, handleSettlement } from "./handler";
@@ -23,7 +23,7 @@ let cachedCore: WorkerCore | null = null;
 
 export class WorkerCore {
   readonly sdkConfig: SdkConfigManager;
-  readonly restrictions: RestrictionsManager;
+  readonly rules: RulesManager;
   readonly paymentMethods: PaymentMethodsManager;
   readonly apiKey: string;
   readonly baseUrl: string;
@@ -33,7 +33,7 @@ export class WorkerCore {
 
   constructor(store: ConfigStore, apiKey: string, baseUrl: string, platform: string, sdkVersion: string) {
     this.sdkConfig = new SdkConfigManager(store);
-    this.restrictions = new RestrictionsManager(store);
+    this.rules = new RulesManager(store);
     this.paymentMethods = new PaymentMethodsManager(store);
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
@@ -88,7 +88,7 @@ export class WorkerCore {
 
 // Types
 export type {
-  ApiRestriction,
+  ApiRule,
   ConfigStore,
   ErrorReport,
   EventPayload,
@@ -96,14 +96,14 @@ export type {
   FoldsetOptions,
   SdkConfig,
   HttpServerResult,
-  McpRestriction,
+  McpRule,
   PassthroughAuthMethod,
   PaymentMethod,
   ProcessRequestResult,
   RequestAdapter,
   RequestMetadata,
-  Restriction,
-  RestrictionBase,
+  Rule,
+  RuleBase,
 } from "./types";
 
 // Store
@@ -119,7 +119,7 @@ export {
   FacilitatorManager,
   SdkConfigManager,
   PaymentMethodsManager,
-  RestrictionsManager,
+  RulesManager,
 } from "./config";
 
 // Server
@@ -147,4 +147,3 @@ export { formatApiPaymentError } from "./api";
 
 // Constants
 export const FOLDSET_VERIFIED_HEADER = "x-foldset-verified";
-

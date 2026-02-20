@@ -44,7 +44,7 @@ export async function handlePaymentRequest(
   result.metadata = metadata;
 
   if (result.type === "payment-error") {
-    if (result.restriction.price === 0) {
+    if (result.rule.price === 0) {
       await logEvent(core, adapter, 200, metadata.request_id);
       return noPaymentRequired(metadata);
     }
@@ -92,8 +92,8 @@ export async function handleRequest(
 
   const paymentMethods = await core.paymentMethods.get();
 
-  if (paymentMethods.length > 0 && result.restriction.type === "api") {
-    formatApiPaymentError(result, result.restriction, paymentMethods, sdkConfig?.termsOfServiceUrl, passthroughMethods);
+  if (paymentMethods.length > 0 && result.rule.type === "api") {
+    formatApiPaymentError(result, result.rule, paymentMethods, sdkConfig?.termsOfServiceUrl, passthroughMethods);
   }
 
   return result;

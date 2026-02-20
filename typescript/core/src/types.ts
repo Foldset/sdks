@@ -18,7 +18,7 @@ export interface RequestMetadata {
 
 export type HttpServerResult = { metadata: RequestMetadata } & (
   | (Extract<HTTPProcessResult, { type: "no-payment-required" }> & { headers?: Record<string, string> })
-  | (Extract<HTTPProcessResult, { type: "payment-error" }> & { restriction: Restriction })
+  | (Extract<HTTPProcessResult, { type: "payment-error" }> & { rule: Rule })
   | Extract<HTTPProcessResult, { type: "payment-verified" }>
 );
 
@@ -68,25 +68,25 @@ export interface SdkConfig {
   passthroughAuthMethods: PassthroughAuthMethod[];
 }
 
-export interface RestrictionBase {
+export interface RuleBase {
   description: string;
   price: number;
   scheme: string;
 }
 
-export interface ApiRestriction extends RestrictionBase {
+export interface ApiRule extends RuleBase {
   type: "api";
   path: string;
   httpMethod?: string;
 }
 
-export interface McpRestriction extends RestrictionBase {
+export interface McpRule extends RuleBase {
   type: "mcp";
   method: string;
   name: string;
 }
 
-export type Restriction = ApiRestriction | McpRestriction;
+export type Rule = ApiRule | McpRule;
 
 export interface PaymentMethod {
   caip2_id: string;
