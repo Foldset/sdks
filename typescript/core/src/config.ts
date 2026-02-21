@@ -17,6 +17,10 @@ export const CACHE_TTL_MS = 30_000;
 
 export const API_BASE_URL = "https://api.foldset.com";
 
+export const FOLDSET_HOW_TO_PAY_URL = "https://foldset.com/how-to-pay";
+export const FOLDSET_URL = "https://foldset.com";
+export const FOLDSET_PROVIDER_NAME = "Foldset";
+
 export function buildRequestMetadata(): RequestMetadata {
   return {
     version: PACKAGE_VERSION,

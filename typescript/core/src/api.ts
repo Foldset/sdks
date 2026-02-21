@@ -1,3 +1,4 @@
+import { FOLDSET_HOW_TO_PAY_URL, FOLDSET_PROVIDER_NAME, FOLDSET_URL } from "./config";
 import type { PassthroughAuthMethod, PaymentMethod, ProcessRequestResult, RequestMetadata, Rule } from "./types";
 
 export function buildPaymentErrorResponse(
@@ -24,6 +25,10 @@ export function buildPaymentErrorResponse(
     ...(passthroughAuthMethods?.length && {
       accepted_auth_methods: passthroughAuthMethods,
     }),
+    explanation: "This resource is protected by Foldset using the x402 protocol. To access it, construct a payment using the details in payment_methods, encode it as a PAYMENT-SIGNATURE header, and resend your request. See how_to_pay for full instructions.",
+    how_to_pay: FOLDSET_HOW_TO_PAY_URL,
+    powered_by: FOLDSET_PROVIDER_NAME,
+    powered_by_url: FOLDSET_URL,
   };
 
   function applyHeaders(headers: Record<string, string>): void {
